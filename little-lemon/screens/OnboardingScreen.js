@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import {View, TextInput, Text, StyleSheet, Image, Pressable, Alert} from 'react-native'
-import {validateEmail} from '../utils/validateEmail'
+import { View, TextInput, Text, StyleSheet, Image, Pressable, Alert } from 'react-native'
+import { validateEmail } from '../utils/validateEmail'
+import { saveLoginSession, getLoginSession } from '../utils/loginSessionManagement'
 
 const OnboardingScreen = () => {
 
@@ -46,17 +47,29 @@ const OnboardingScreen = () => {
     }
 
     const onSubmit = () => {
-        Alert.alert(`Welcome ${firstName} !`)
-        setFirstName('')
-        setEmail('')
-        setIsEmailValid(false)
+
+        if (isFormValid){
+            //Alert.alert(`Welcome ${firstName} !`)
+
+            const userProfile = {first_name: firstName, email: email}
+            saveLoginSession(userProfile)
+
+            // setFirstName('')
+            // setEmail('')
+            // setIsEmailValid(false)
+
+            const user_session = getLoginSession()
+
+            // Alert.alert(user_session)
+        } else {
+            Alert.alert("Form is invalid !")
+        }
     }
 
     useEffect(() => {
         // Check to see if form is valid
         checkFormValidity()
-
-        console.log(`IsFormValid: ${isFormValid}`)
+        
       }, [firstName, email]);
 
     return (
