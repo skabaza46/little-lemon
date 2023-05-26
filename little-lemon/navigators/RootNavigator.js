@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import OnboardingScreen from '../screens/OnboardingScreen'
 import ProfileScreen from '../screens/ProfileScreen'
+import SplashScreen from '../screens/SplashScreen'
+
 import { getLoginSession } from '../utils/loginSessionManagement'
 
 
@@ -30,6 +32,7 @@ const RootNavigator = () => {
 
   return (
     <Stack.Navigator>
+
         {isLoggedIn && userProfile ? (
             <Stack.Screen
             name="Profile"
@@ -37,6 +40,7 @@ const RootNavigator = () => {
             options={{title: `User Profile ${userProfile.first_name}`}}
             />
         ) : (
+
             <Stack.Screen
             name="Onboarding"
             component={OnboardingScreen}
@@ -44,6 +48,12 @@ const RootNavigator = () => {
             />
         )
         }
+
+        <Stack.Screen
+        name="Loading"
+        component={SplashScreen}
+        />
+
     </Stack.Navigator>
   );
 };
