@@ -3,11 +3,14 @@ import { useState, useEffect } from 'react';
 import { View, TextInput, Text, StyleSheet, Image, Pressable, Alert } from 'react-native'
 import { validateEmail } from '../utils/validateEmail'
 import { saveLoginSession, getLoginSession } from '../utils/loginSessionManagement'
+import { removeNumbersAndSymbolds } from '../utils/cleanString';
 
 const OnboardingScreen = () => {
 
     const [email, setEmail] = useState('')
     const [firstName, setFirstName] = useState('')
+    const [lastName, setLastName] = useState('')
+    const [phoneNumber, setPhoneNumber] = useState('')
     const [isEmailValid, setIsEmailValid] = useState(false)
     const [isFormValid, setIsFormValid] = useState(false)
 
@@ -21,20 +24,35 @@ const OnboardingScreen = () => {
         }
 
       }
+    
 
     const onChangeFirstName = (firstName) => {
-        const regMatch = /^[a-zA-Z]*$/.test(firstName);
-        if(regMatch){
+        const value = removeNumbersAndSymbolds(firstName)
+        if(value.isValid){
             setFirstName(firstName)
         } else {
-            const cleanedFirstName = firstName.replace(/[^a-zA-Z ]/g, "");
-
-            if (!cleanedFirstName.length > 0){
+            if (!value.data.length > 0){
                 setIsFormValid(false)
             }
-            setFirstName(cleanedFirstName)
+            setFirstName(value.data)
         }
 
+    }
+    const onChangeLastName = (lastName) => {
+        const value = removeNumbersAndSymbolds(lastName)
+        if(value.isValid){
+            setLastName(lastName)
+        } else {
+            if (!value.data.length > 0){
+                setIsFormValid(false)
+            }
+            setLastName(value.data)
+        }
+
+    }
+
+    const onChangePhoneNumber = (phoneNumber) => {
+        setPhoneNumber(phoneNumber)
     }
 
     const checkFormValidity = ()=> {
@@ -49,14 +67,19 @@ const OnboardingScreen = () => {
     const onSubmit = () => {
 
         if (isFormValid){
-            //Alert.alert(`Welcome ${firstName} !`)
-
-            const userProfile = {first_name: firstName, email: email}
+            const userProfile = {
+                first_name: firstName,
+                last_name: lastName,
+                phone_number: phoneNumber,
+                email: email,
+            }
             saveLoginSession(userProfile)
 
-            // setFirstName('')
-            // setEmail('')
-            // setIsEmailValid(false)
+            setFirstName('')
+            setLastName('')
+            setPhoneNumber('')
+            setEmail('')
+            setIsEmailValid(false)
 
             const user_session = getLoginSession()
 
@@ -69,7 +92,6 @@ const OnboardingScreen = () => {
     useEffect(() => {
         // Check to see if form is valid
         checkFormValidity()
-        
       }, [firstName, email]);
 
     return (
@@ -93,6 +115,20 @@ const OnboardingScreen = () => {
 
                 <TextInput
                 style={styles.input}
+                placeholder='Last Name'
+                value={lastName}
+                onChangeText={onChangeLastName}
+                />
+
+                <TextInput
+                style={styles.input}
+                placeholder='Phone Number'
+                value={phoneNumber}
+                onChangeText={onChangePhoneNumber}
+                />
+
+                <TextInput
+                style={styles.input}
                 placeholder='E-Mail'
                 keyboardType="email-address"
                 autoCapitalize='none'
@@ -101,6 +137,7 @@ const OnboardingScreen = () => {
                 />
             </View>
 
+            onChangeLastName
         <Pressable
         style={[styles.buttonDisabled, isFormValid? styles.button : styles.buttonDisabled]}
         onPress={onSubmit}

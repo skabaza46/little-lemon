@@ -33,7 +33,7 @@ const RootNavigator = () => {
   return (
     <Stack.Navigator>
 
-        {isLoggedIn && userProfile ? (
+        {isLoggedIn ? (
             <Stack.Screen
             name="Profile"
             component={ProfileScreen}
@@ -48,6 +48,7 @@ const RootNavigator = () => {
             />
         )
         }
+
 
         <Stack.Screen
         name="Loading"
