@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react"
-import { CheckBox, Text, View,Image, StyleSheet, Pressable, TextInput } from "react-native"
+import { Text, View,Image, StyleSheet, Pressable, TextInput } from "react-native"
+import BouncyCheckbox from "react-native-bouncy-checkbox"
+import { getLoginSession, removeLoginSession } from "../utils/loginSessionManagement"
+import { saveUserSettings, getUserSettings } from "../utils/userSettings"
 
-const ProfileScreen = () => {
+const ProfileScreen = ({navigation}) => {
     const [ firstName, setFirstName ] = useState('')
     const [ lastName, setLastName ] = useState('')
     const [ phoneNumber, setPhoneNumber ] = useState('')
@@ -27,6 +30,44 @@ const ProfileScreen = () => {
 
     }
 
+    const onOrderStatusChangeSelected = (isSelected) => {
+        setOrderStatusesSelected(isSelected)
+    }
+
+    const onPasswordChangedSelected = (isSelected) => {
+        setPasswordChangesSelected(isSelected)
+    }
+
+    const onSpecialOfferSelected = (isSelected) => {
+        setSpecialOfferSelected(isSelected)
+    }
+
+    const onNewsletterSelected = (isSelected) => {
+
+        setNewsletterSelected(isSelected)
+    }
+
+    const onLogOutHandler = () => {
+        removeLoginSession()
+
+        navigation.navigate("Onboarding")
+
+    }
+
+
+    useEffect( () => {
+        (async () => {
+            // Get the user login session
+            const user_setting = await saveUserSettings({
+                is_order_status: isOrderStatusesSelected,
+                is_news_letter: isNewsletterSelected,
+                is_password_changed: isPasswordChangesSelected,
+                is_special_offer: isSpecialOfferSelected
+            });
+
+        })();
+
+      }, [isNewsletterSelected, isOrderStatusesSelected, isPasswordChangesSelected, isSpecialOfferSelected]);
 
     useEffect( () => {
         (async () => {
@@ -36,12 +77,20 @@ const ProfileScreen = () => {
             // Check to see if the user is logged in
             if (user_session){
                 // Set the user login profile
-                setUserProfile(user_session)
                 setFirstName(user_session.first_name)
                 setLastName(user_session.last_name)
                 setEmail(user_session.email)
                 setPhoneNumber(user_session.phone_number)
-       }
+            }
+
+            const user_settings = await getUserSettings();
+            if (user_settings){
+                // Set the user settings
+                setSpecialOfferSelected(user_settings.is_special_offer)
+                setOrderStatusesSelected(user_settings.is_order_status)
+                setNewsletterSelected(user_settings.is_news_letter)
+                setPasswordChangesSelected(user_settings.is_password_changed)
+            }
         })();
 
       }, []);
@@ -108,42 +157,38 @@ const ProfileScreen = () => {
             </View>
 
             <View>
-                <Text>Email notification</Text>
-                <View style={styles.checkboxContainer}>
-                    <CheckBox
-                    value={isOrderStatusesSelected}
-                    onValueChange={setOrderStatusesSelected}
-                    style={styles.checkbox}
-                    />
-                    <Text style={styles.label}>Order statuses</Text>
-                </View>
-                <View style={styles.checkboxContainer}>
-                    <CheckBox
-                    value={isPasswordChangesSelected}
-                    onValueChange={setPasswordChangesSelected}
-                    style={styles.checkbox}
-                    />
-                    <Text style={styles.label}>Password changes</Text>
-                </View>
-                <View style={styles.checkboxContainer}>
-                    <CheckBox
-                    value={isSpecialOfferSelected}
-                    onValueChange={setSpecialOfferSelected}
-                    style={styles.checkbox}
-                    />
-                    <Text style={styles.label}>Special offers</Text>
-                </View>
-                <View style={styles.checkboxContainer}>
-                    <CheckBox
-                    value={isNewsletterSelected}
-                    onValueChange={setNewsletterSelected}
-                    style={styles.checkbox}
-                    />
-                    <Text style={styles.label}>Newsletter</Text>
-                </View>
+                <Text style={styles.header}>E-Mail notification</Text>
+                <BouncyCheckbox
+                style={styles.checkbox}
+                text={`Order statuses`}
+                isChecked={isOrderStatusesSelected}
+                onPress={onOrderStatusChangeSelected}
+                textStyle={{textDecorationLine: "none", fontWeight: '300', color: 'black'}}
+                />
+                <BouncyCheckbox
+                style={styles.checkbox}
+                text={`Password changes`}
+                isChecked={isPasswordChangesSelected}
+                onPress={onPasswordChangedSelected}
+                textStyle={{textDecorationLine: "none", fontWeight: '300', color: 'black'}}
+                />
+                <BouncyCheckbox
+                style={styles.checkbox}
+                text={`Special offers`}
+                isChecked={isSpecialOfferSelected}
+                onPress={onSpecialOfferSelected}
+                textStyle={{textDecorationLine: "none", fontWeight: '300', color: 'black'}}
+                />
+                <BouncyCheckbox
+                style={styles.checkbox}
+                text={`Newsletter`}
+                isChecked={isNewsletterSelected}
+                onPress={onNewsletterSelected}
+                textStyle={{textDecorationLine: "none", fontWeight: '300', color: 'black'}}
+                />
             </View>
             <View style={styles.bottomButtonGroup}>
-                <Pressable style={styles.buttonLogout}>
+                <Pressable style={styles.buttonLogout} onPress={onLogOutHandler}>
                     <Text style={styles.textLogout}>Log Out</Text>
                 </Pressable>
                 <View style={styles.bottomButtonGroupChild}>
@@ -163,15 +208,9 @@ const ProfileScreen = () => {
 export default ProfileScreen;
 
 
-
-
 const styles = StyleSheet.create({
-    checkboxContainer: {
-        flexDirection: 'row',
-        marginBottom: 20,
-    },
     checkbox: {
-        alignSelf: 'center',
+        margin: 2
     },
     label: {
         margin: 8,
@@ -285,10 +324,18 @@ const styles = StyleSheet.create({
         margin: 20
     },
     changeButtonText: {
-
+        fontSize: 16,
+        lineHeight: 21,
+        fontWeight: 'bold',
+        letterSpacing: 0.25,
+        color: 'white',
     },
     removeButtonText: {
-
+        fontSize: 16,
+        lineHeight: 21,
+        fontWeight: 'bold',
+        letterSpacing: 0.25,
+        color: '#495E57',
     },
     textDiscardChanges: {
         fontSize: 16,

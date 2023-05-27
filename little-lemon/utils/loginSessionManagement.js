@@ -36,7 +36,7 @@ export const getLoginSession = async () => {
 export const removeLoginSession = async () => {
     try{
         const user_session = await AsyncStorage.removeItem("USER_SESSION");
-        console.log("Successfully removed user login session!")
+        console.log("Successfully logged user out!")
     } catch (error){
         console.error(error)
     }
