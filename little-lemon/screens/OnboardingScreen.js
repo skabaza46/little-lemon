@@ -73,27 +73,31 @@ const OnboardingScreen = ({navigation}) => {
                 email: email,
             }
             saveLoginSession(userProfile)
+            setFirstName('')
+            setLastName('')
+            setPhoneNumber('')
+            setEmail('')
+            setIsEmailValid(false)
 
             // Redirect the user to the User Profile screen
             navigation.navigate("Profile")
-            // setFirstName('')
-            // setLastName('')
-            // setPhoneNumber('')
-            // setEmail('')
-            // setIsEmailValid(false)
-            // Alert.alert(user_session)
+
         } else {
             Alert.alert("Form is invalid !")
         }
     }
 
     useEffect(() => {
-        // Check if user is logged in, if so redirect them to Profile screen
-        if (isUserLoggedInAlready()){
-            navigation.navigate("Profile")
-        }
-        checkFormValidity()
-      }, []);
+
+        (async () => {
+            // Check if user is logged in, if so redirect them to Profile screen
+            const userIsLoggedIn = await isUserLoggedInAlready()
+            if (userIsLoggedIn){
+                navigation.navigate("Profile")
+            }
+
+            })();
+        }, []);
 
     useEffect(() => {
         // Check to see if form is valid

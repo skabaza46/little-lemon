@@ -29,23 +29,21 @@ const RootNavigator = () => {
 
   return (
     <Stack.Navigator initialRouteName={isLoggedIn? "Profile": "Onboarding"}>
+         <Stack.Screen
+             name="Profile"
+             component={ProfileScreen}
+             options={{title: `User Profile`, headerBackVisible: false}}
+             />
 
         <Stack.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{title: `User Profile`}}
-        />
-
-        <Stack.Screen
-        name="Onboarding"
-        component={OnboardingScreen}
-        options={{ title: 'Onboarding' }}
-        />
-
+            name="Onboarding"
+            component={OnboardingScreen}
+            options={{ title: 'Onboarding', headerBackVisible: false}}
+            />
         <Stack.Screen
         name="Loading"
         component={SplashScreen}
-        options={{headerShown: false}}
+        options={{title: 'Splash Screen',headerBackVisible: false}}
         />
 
     </Stack.Navigator>

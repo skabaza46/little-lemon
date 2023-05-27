@@ -1,14 +1,23 @@
 import { useState, useEffect } from "react"
-import { Text, View,Image, StyleSheet, Pressable, TextInput } from "react-native"
+import { TouchableHighlight, Text, View,Image, StyleSheet, Pressable, TextInput } from "react-native"
 import BouncyCheckbox from "react-native-bouncy-checkbox"
-import { getLoginSession, removeLoginSession } from "../utils/loginSessionManagement"
-import { saveUserSettings, getUserSettings } from "../utils/userSettings"
+import { saveLoginSession, getLoginSession, removeLoginSession } from "../utils/loginSessionManagement"
+import { saveUserSettings, getUserSettings, removeUserSettings } from "../utils/userSettings"
+import { removeNumbersAndSymbolds } from '../utils/cleanString';
+import { validateEmail } from '../utils/validateEmail'
+import { validatePhoneNumber } from '../utils/validatePhoneNumber'
 
 const ProfileScreen = ({navigation}) => {
     const [ firstName, setFirstName ] = useState('')
+    const [ isFirstNameValid, setIsFirstNameValid] = useState(true)
     const [ lastName, setLastName ] = useState('')
+    const [ isLastNameValid, setIsLastNameValid] = useState(true)
     const [ phoneNumber, setPhoneNumber ] = useState('')
+    const [ isPhoneNumberValid, setIsPhoneNumberValid] = useState(false)
     const [ email, setEmail ] = useState('')
+    const [ isEmailValid, setIsEmailValid] = useState(false)
+    const [ isFormValid, setIsFormValid ] = useState(false)
+    const [ ischangePersonalInfo, setIsChangePersonalInfo] = useState(false)
 
     // Notifications statuses
     const [isOrderStatusesSelected, setOrderStatusesSelected] = useState(false)
@@ -16,81 +25,140 @@ const ProfileScreen = ({navigation}) => {
     const [isSpecialOfferSelected, setSpecialOfferSelected] = useState(false)
     const [isNewsletterSelected, setNewsletterSelected] = useState(false)
 
-    const onChangeFirstName = () => {
+    const onChangeFirstName = (first_name) => {
+        const value = removeNumbersAndSymbolds(first_name)
+
+        if(value.isValid){
+            setFirstName(value.data)
+        } else {
+            if (!value.data.length > 0){
+                setIsFormValid(false)
+                setIsFirstNameValid(false)
+            }
+            setFirstName(value.data)
+        }
+    }
+
+    const onChangeLastName = (last_name) => {
+        const value = removeNumbersAndSymbolds(last_name)
+        if(value.isValid){
+            setLastName(value.data)
+        } else {
+            if (!value.data.length > 0){
+                setIsFormValid(false)
+                setIsLastNameValid(false)
+            }
+            setLastName(value.data)
+        }
 
     }
 
-    const onChangeLastName = () => {
+    const onChangePhoneNumber = (phone_number) => {
+        setPhoneNumber(phone_number)
 
-        alert("Simen")
-
+        const isValid = validatePhoneNumber(phone_number)
+        if (isValid){
+            setIsPhoneNumberValid(true)
+        } else {
+            setIsPhoneNumberValid(false)
+        }
     }
 
-    const onChangeEmail = () => {
 
+    const onChangeEmail = (email_address) => {
+        setEmail(email_address)
+        const isValid = validateEmail(email_address)
+        if (isValid){
+            setIsEmailValid(true)
+        } else {
+            setIsEmailValid(false)
+        }
     }
 
-    const onOrderStatusChangeSelected = (isSelected) => {
-        setOrderStatusesSelected(isSelected)
+    const onOrderStatusChangeSelected = () => {
+        setOrderStatusesSelected(!isOrderStatusesSelected)
     }
 
-    const onPasswordChangedSelected = (isSelected) => {
-        setPasswordChangesSelected(isSelected)
+    const onPasswordChangedSelected = () => {
+        setPasswordChangesSelected(!isPasswordChangesSelected)
     }
 
-    const onSpecialOfferSelected = (isSelected) => {
-        setSpecialOfferSelected(isSelected)
+    const onSpecialOfferSelected = () => {
+        setSpecialOfferSelected(!isSpecialOfferSelected)
     }
 
-    const onNewsletterSelected = (isSelected) => {
-
-        setNewsletterSelected(isSelected)
+    const onNewsletterSelected = () => {
+        setNewsletterSelected(!isNewsletterSelected)
     }
 
     const onLogOutHandler = () => {
         removeLoginSession()
-
+        removeUserSettings()
+        // Redirect the user to the Onboarding page upon logging out
         navigation.navigate("Onboarding")
 
+    }
+
+    const onSaveChanges = async () => {
+        // User settings payload
+        const settings = {
+            is_order_status: isOrderStatusesSelected,
+            is_news_letter: isNewsletterSelected,
+            is_password_changed: isPasswordChangesSelected,
+            is_special_offer: isSpecialOfferSelected
+        }
+
+        // Save the settings changes
+        await saveUserSettings(settings)
+
+
+        // User personal information payload
+        const personal_info = {
+            first_name: firstName,
+            last_name: lastName,
+            phone_number: phoneNumber,
+            email: email
+        }
+        // Save personal information changes
+        await saveLoginSession(personal_info)
+    }
+
+    const onDiscardChanges = async () => {
+        // Reset everything to their default, before changes were made
+        const user_session = await getLoginSession();
+        if (user_session){
+            setFirstName(user_session.first_name)
+            setLastName(user_session.last_name)
+            setEmail(user_session.email)
+            setPhoneNumber(user_session.phone_number)
+            setIsEmailValid(true)
+            setIsFormValid(true)
+
+            const isValidPhone = validatePhoneNumber(user_session.phone_number)
+            setIsPhoneNumberValid(isValidPhone)
+        }
+
+        const user_settings = await getUserSettings()
+        if(user_settings){
+            setSpecialOfferSelected(user_settings.is_special_offer)
+            setOrderStatusesSelected(user_settings.is_order_status)
+            setNewsletterSelected(user_settings.is_news_letter)
+            setPasswordChangesSelected(user_settings.is_password_changed)
+            setIsEmailValid(true)
+            setIsFormValid(true)
+        }
+    }
+
+    const onChangePersonalInfo = () => {
+        setIsChangePersonalInfo(!ischangePersonalInfo)
+
+        console.log(ischangePersonalInfo)
     }
 
 
     useEffect( () => {
         (async () => {
-            // Get the user login session
-            const user_setting = await saveUserSettings({
-                is_order_status: isOrderStatusesSelected,
-                is_news_letter: isNewsletterSelected,
-                is_password_changed: isPasswordChangesSelected,
-                is_special_offer: isSpecialOfferSelected
-            });
-
-        })();
-
-      }, [isNewsletterSelected, isOrderStatusesSelected, isPasswordChangesSelected, isSpecialOfferSelected]);
-
-    useEffect( () => {
-        (async () => {
-            // Get the user login session
-            const user_session = await getLoginSession();
-
-            // Check to see if the user is logged in
-            if (user_session){
-                // Set the user login profile
-                setFirstName(user_session.first_name)
-                setLastName(user_session.last_name)
-                setEmail(user_session.email)
-                setPhoneNumber(user_session.phone_number)
-            }
-
-            const user_settings = await getUserSettings();
-            if (user_settings){
-                // Set the user settings
-                setSpecialOfferSelected(user_settings.is_special_offer)
-                setOrderStatusesSelected(user_settings.is_order_status)
-                setNewsletterSelected(user_settings.is_news_letter)
-                setPasswordChangesSelected(user_settings.is_password_changed)
-            }
+            await onDiscardChanges();
         })();
 
       }, []);
@@ -113,46 +181,50 @@ const ProfileScreen = ({navigation}) => {
                     source={require("../assets/Profile.png")}
                     />
 
-                    <Pressable style={styles.changeButton}>
-                        <Text style={styles.changeButtonText}>Change</Text>
-                    </Pressable>
-
-                    <Pressable style={styles.removeButton}>
-                        <Text style={styles.removeButtonText}>Remove</Text>
-                    </Pressable>
+                    <TouchableHighlight style={styles.changeButton} onPress={onChangePersonalInfo}>
+                        <Text style={styles.changeButtonText}>
+                            {!ischangePersonalInfo? 'Enable Update Info': "Disabled Update Info"}
+                        </Text>
+                    </TouchableHighlight>
 
                 </View>
             </View>
 
             <View style={styles.form}>
                 <TextInput
-                style={styles.input}
+                style={[isFirstNameValid? styles.inputValid : styles.inputInvalid]}
                 placeholder='First Name'
                 value={firstName}
                 onChangeText={onChangeFirstName}
+                editable={ischangePersonalInfo}
                 />
 
                 <TextInput
-                style={styles.input}
+                style={[isLastNameValid? styles.inputValid : styles.inputInvalid]}
                 placeholder='Last Name'
                 value={lastName}
                 onChangeText={onChangeLastName}
+                editable={ischangePersonalInfo}
                 />
 
                 <TextInput
-                style={styles.input}
+                style={[isEmailValid? styles.inputValid : styles.inputInvalid]}
                 placeholder='E-Mail'
                 keyboardType="email-address"
                 autoCapitalize='none'
                 value={email}
                 onChangeText={onChangeEmail}
+                editable={ischangePersonalInfo}
                 />
 
             <TextInput
-                style={styles.input}
+                style={isPhoneNumberValid? styles.inputValid : styles.inputInvalidWarnning}
                 placeholder='Phone Number'
                 value={phoneNumber}
-                onChangeText={onChangeFirstName}
+                onChangeText={onChangePhoneNumber}
+                editable={ischangePersonalInfo}
+                maxLength={15}
+                keyboardType={"number-pad"}
                 />
             </View>
 
@@ -164,6 +236,7 @@ const ProfileScreen = ({navigation}) => {
                 isChecked={isOrderStatusesSelected}
                 onPress={onOrderStatusChangeSelected}
                 textStyle={{textDecorationLine: "none", fontWeight: '300', color: 'black'}}
+                disableBuiltInState
                 />
                 <BouncyCheckbox
                 style={styles.checkbox}
@@ -171,6 +244,7 @@ const ProfileScreen = ({navigation}) => {
                 isChecked={isPasswordChangesSelected}
                 onPress={onPasswordChangedSelected}
                 textStyle={{textDecorationLine: "none", fontWeight: '300', color: 'black'}}
+                disableBuiltInState
                 />
                 <BouncyCheckbox
                 style={styles.checkbox}
@@ -178,6 +252,7 @@ const ProfileScreen = ({navigation}) => {
                 isChecked={isSpecialOfferSelected}
                 onPress={onSpecialOfferSelected}
                 textStyle={{textDecorationLine: "none", fontWeight: '300', color: 'black'}}
+                disableBuiltInState
                 />
                 <BouncyCheckbox
                 style={styles.checkbox}
@@ -185,20 +260,26 @@ const ProfileScreen = ({navigation}) => {
                 isChecked={isNewsletterSelected}
                 onPress={onNewsletterSelected}
                 textStyle={{textDecorationLine: "none", fontWeight: '300', color: 'black'}}
+                disableBuiltInState
                 />
             </View>
             <View style={styles.bottomButtonGroup}>
-                <Pressable style={styles.buttonLogout} onPress={onLogOutHandler}>
+                <TouchableHighlight style={styles.buttonLogout} onPress={onLogOutHandler}>
                     <Text style={styles.textLogout}>Log Out</Text>
-                </Pressable>
-                <View style={styles.bottomButtonGroupChild}>
-                    <Pressable style={styles.discardChangesButton}>
-                        <Text style={styles.textDiscardChanges}>Discard changes</Text>
-                    </Pressable>
-                    <Pressable style={styles.saveChangesButton}>
-                        <Text style={styles.textSaveChanges}>Save Changes</Text>
-                    </Pressable>
-                </View>
+                </TouchableHighlight>
+                {ischangePersonalInfo? (
+                     <View style={styles.bottomButtonGroupChild}>
+                     <TouchableHighlight style={styles.discardChangesButton} onPress={onDiscardChanges}>
+                         <Text style={styles.textDiscardChanges}>Discard changes</Text>
+                     </TouchableHighlight>
+                     <TouchableHighlight style={styles.saveChangesButton} onPress={onSaveChanges}>
+                         <Text style={styles.textSaveChanges}>Save Changes</Text>
+                     </TouchableHighlight>
+                 </View>
+                ): null
+
+                }
+
             </View>
         </View>
     )
@@ -240,6 +321,36 @@ const styles = StyleSheet.create({
         height: 50,
         borderRadius: 10,
         padding: 10,
+    },
+    inputValid: {
+        fontSize: 18,
+        borderWidth: 2,
+        marginBottom: 20,
+        width: 310,
+        height: 50,
+        borderRadius: 10,
+        padding: 10,
+        borderColor: 'green'
+    },
+    inputInvalid: {
+        fontSize: 18,
+        borderWidth: 2,
+        marginBottom: 20,
+        width: 310,
+        height: 50,
+        borderRadius: 10,
+        padding: 10,
+        borderColor: 'red'
+    },
+    inputInvalidWarnning: {
+        fontSize: 18,
+        borderWidth: 2,
+        marginBottom: 20,
+        width: 310,
+        height: 50,
+        borderRadius: 10,
+        padding: 10,
+        borderColor: '#F4CE14'
     },
     button: {
         alignItems: 'center',
