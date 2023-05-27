@@ -3,16 +3,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export const saveLoginSession = async (user) => {
+    if (isUserLoggedInAlready()){
+        console.info("User is already logged in!")
 
-    try {
-        await AsyncStorage.setItem(
-            'USER_SESSION',
-            JSON.stringify(user)
-        )
+        const user = await getLoginSession()
 
-        console.log(`Successfully saved user login session!`)
-    } catch (error){
-        console.error(error)
+        console.info(`User: ${JSON.stringify(user)}`)
+
+    } else {
+        try {
+            await AsyncStorage.setItem(
+                'USER_SESSION',
+                JSON.stringify(user)
+            )
+            console.log(`Successfully saved user login session!`)
+        } catch (error){
+            console.error(error)
+        }
     }
 }
 
@@ -29,6 +36,8 @@ export const getLoginSession = async () => {
         }
     } catch (error){
         console.error(error)
+
+        return null
     }
 }
 
@@ -39,5 +48,16 @@ export const removeLoginSession = async () => {
         console.log("Successfully logged user out!")
     } catch (error){
         console.error(error)
+    }
+}
+
+
+export const isUserLoggedInAlready = async () => {
+    const user_login_session =  await getLoginSession();
+
+    if (user_login_session === null || user_login_session === undefined){
+        return false
+    } else {
+        return true
     }
 }

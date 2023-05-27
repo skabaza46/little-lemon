@@ -223,11 +223,9 @@ const styles = StyleSheet.create({
     logo: {
         width: 250,
         height: 50,
-        textAlign: 'left'
     },
     header: {
         fontSize: 20,
-        textAlign: 'left',
         margin: 10,
         fontWeight:"bold"
     },

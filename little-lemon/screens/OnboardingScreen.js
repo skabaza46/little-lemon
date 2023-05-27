@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react';
 import { View, TextInput, Text, StyleSheet, Image, Pressable, Alert } from 'react-native'
 import { validateEmail } from '../utils/validateEmail'
-import { saveLoginSession, getLoginSession } from '../utils/loginSessionManagement'
+import { saveLoginSession, isUserLoggedInAlready } from '../utils/loginSessionManagement'
 import { removeNumbersAndSymbolds } from '../utils/cleanString';
 
-const OnboardingScreen = () => {
+const OnboardingScreen = ({navigation}) => {
 
     const [email, setEmail] = useState('')
     const [firstName, setFirstName] = useState('')
@@ -24,7 +24,6 @@ const OnboardingScreen = () => {
         }
 
       }
-    
 
     const onChangeFirstName = (firstName) => {
         const value = removeNumbersAndSymbolds(firstName)
@@ -57,7 +56,7 @@ const OnboardingScreen = () => {
 
     const checkFormValidity = ()=> {
 
-        if (firstName.length > 0 && isEmailValid){
+        if (firstName.length > 0 && isEmailValid && lastName.length > 0){
             setIsFormValid(true)
         } else {
             setIsFormValid(false)
@@ -75,19 +74,26 @@ const OnboardingScreen = () => {
             }
             saveLoginSession(userProfile)
 
-            setFirstName('')
-            setLastName('')
-            setPhoneNumber('')
-            setEmail('')
-            setIsEmailValid(false)
-
-            const user_session = getLoginSession()
-
+            // Redirect the user to the User Profile screen
+            navigation.navigate("Profile")
+            // setFirstName('')
+            // setLastName('')
+            // setPhoneNumber('')
+            // setEmail('')
+            // setIsEmailValid(false)
             // Alert.alert(user_session)
         } else {
             Alert.alert("Form is invalid !")
         }
     }
+
+    useEffect(() => {
+        // Check if user is logged in, if so redirect them to Profile screen
+        if (isUserLoggedInAlready()){
+            navigation.navigate("Profile")
+        }
+        checkFormValidity()
+      }, []);
 
     useEffect(() => {
         // Check to see if form is valid
@@ -137,7 +143,6 @@ const OnboardingScreen = () => {
                 />
             </View>
 
-            onChangeLastName
         <Pressable
         style={[styles.buttonDisabled, isFormValid? styles.button : styles.buttonDisabled]}
         onPress={onSubmit}
@@ -174,8 +179,6 @@ const styles = StyleSheet.create({
     },
     header: {
         fontSize: 30,
-        textAlign: 'center',
-        paddingBottom: 100
 
     },
     form: {

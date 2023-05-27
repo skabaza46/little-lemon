@@ -12,8 +12,6 @@ const Stack = createNativeStackNavigator();
 
 const RootNavigator = () => {
     const [ isLoggedIn, setIsLoggedIn ] = useState(false)
-    const [ userProfile, setUserProfile] = useState({})
-
 
     useEffect( () => {
         (async () => {
@@ -22,8 +20,7 @@ const RootNavigator = () => {
 
             // Check to see if the user is logged in
             if (user_session){
-                // Set the user login profile
-                setUserProfile(user_session)
+                // Set the user is logged in
                 setIsLoggedIn(true)
        }
         })();
