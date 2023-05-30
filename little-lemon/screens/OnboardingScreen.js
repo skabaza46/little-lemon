@@ -80,7 +80,8 @@ const OnboardingScreen = ({navigation}) => {
             setIsEmailValid(false)
 
             // Redirect the user to the User Profile screen
-            navigation.navigate("Profile")
+            // navigation.navigate("Profile")
+            navigation.navigate("Home")
 
         } else {
             Alert.alert("Form is invalid !")
@@ -93,7 +94,8 @@ const OnboardingScreen = ({navigation}) => {
             // Check if user is logged in, if so redirect them to Profile screen
             const userIsLoggedIn = await isUserLoggedInAlready()
             if (userIsLoggedIn){
-                navigation.navigate("Profile")
+                // navigation.navigate("Profile")
+                navigation.navigate("Home")
             }
 
             })();

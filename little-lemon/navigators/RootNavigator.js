@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import OnboardingScreen from '../screens/OnboardingScreen'
 import ProfileScreen from '../screens/ProfileScreen'
 import SplashScreen from '../screens/SplashScreen'
+import HomeScreen from "../screens/HomeScreen";
 
 import { getLoginSession } from '../utils/loginSessionManagement'
 
@@ -29,6 +30,11 @@ const RootNavigator = () => {
 
   return (
     <Stack.Navigator initialRouteName={isLoggedIn? "Profile": "Onboarding"}>
+        <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{title: `Home`, headerBackVisible: false}}
+        />
          <Stack.Screen
              name="Profile"
              component={ProfileScreen}
