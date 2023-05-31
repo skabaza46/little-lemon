@@ -16,27 +16,11 @@ export const MenuData = async () => {
        item["image"] = image_url
        item["id"] = index
        item["title"] = item.name
-
-
+       item["description"] = item.description.replace("'","")
 
        newMenuData.push(item)
 
-        // if (newMenuData.hasOwnProperty(item.category)){
-        //     newMenuData[item.category]["data"].push(item)
-        // } else {
-        //     newMenuData[item.category] = {
-        //         data: [item],
-        //         title: item.category
-        //     }
-        // }
     })
-
-    // let newMenuDataList = Object.keys(newMenuData).map((key)=> {
-
-    //     return newMenuData[key]
-    // })
-
-    // console.log(newMenuDataList)
 
     return newMenuData
 
